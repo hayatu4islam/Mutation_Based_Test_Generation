@@ -1,0 +1,61 @@
+function [fitval,nm]=TFit(fname,pop,pop_t)
+    num=numOfLines(fname);
+    tsize=length(pop_t);
+    msize=length(pop);
+    mutkill=zeros(1,msize);
+    %nm1=0; nm2=0; nm3=0; nm4=0; nmm=0;
+    nmm=zeros(1,4); % Number/Frequency of each mutation operator
+
+    for i=1:1%msize
+        %chr=pop(i).Position;
+        chr=[1 0 0 1 1 0 0];
+        %chr=[1 1 1 0 0 1 1 1];
+        op=bin2dec(num2str(chr(1:2)))+1; % To select operator among arithmetic and relational operator replacement (Only 4 options)
+        lnum=bin2dec(num2str(chr(3:6)))+1;
+        %lnum=bin2dec(num2str(chr(2:5)))+1;
+        lnum=round(lnum);
+        choice=bin2dec(num2str(chr(7:8)))+1;
+        nfname='mutantfname.m';
+        %copyfile(fname,nfname);
+        if (op==1)
+            nmm(1)=nmm(1)+1;
+            mutated=arithRep(fname,lnum,choice);
+        elseif (op==2)
+            nmm(2)=nmm(2)+1;
+            mutated=relRep(fname,lnum,choice);
+        elseif (op==3)
+            nmm(3)=nmm(3)+1;
+            mutated=opDel(fname,lnum,choice);
+        elseif (op==4)
+            nmm(4)=nmm(4)+1;
+            mutated=stmtDel(fname,lnum,choice);
+        end
+        %writeToFile(nfname,mutated);
+        
+        writeToFile(nfname,mutated);
+        pause(0.007);
+            
+        T=zeros(1,tsize);
+        %realResult=tritype(a,b,c);        
+        for j=1:tsize
+            t=pop_t(j).Position;
+            a=bin2dec(num2str(t(1:2)))+1;
+            b=bin2dec(num2str(t(3:6)))+1;
+            c=bin2dec(num2str(t(7:end)))+1;
+            realResult=quadraticSolver(a,b,c);
+            %mresult=zeros(1,2);
+            mresult=mutantfname(a,b,c);
+            if (~isequal(realResult,mresult))
+                T(j)=1;
+            end            
+        end 
+        
+        disp(T);
+        mutkill(i)=(sum(T)/tsize);
+    end % End of if i=1:msize
+     
+    
+    
+fitval=mutkill;
+nm=nmm;
+end
